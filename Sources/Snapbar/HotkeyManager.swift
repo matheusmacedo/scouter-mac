@@ -16,7 +16,10 @@ final class HotkeyManager {
             let manager = Unmanaged<HotkeyManager>.fromOpaque(userData!).takeUnretainedValue()
             manager.handlers[hotKeyID.id]?()
             return noErr
-        }, 1, &spec, Unmanaged.passUnretained(self).toOpaque(), &eventHandler)
+        }, 1, &spec,
+        // AppDelegate owns this manager for the app's lifetime; it must outlive the app because
+        // the Carbon handler above keeps this raw pointer.
+        Unmanaged.passUnretained(self).toOpaque(), &eventHandler)
     }
 
     func register(keyCode: Int, modifiers: Int, handler: @escaping () -> Void) {

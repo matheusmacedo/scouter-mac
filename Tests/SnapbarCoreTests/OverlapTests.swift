@@ -40,7 +40,7 @@ struct OverlapTests {
     @Test func repeatingContentPicksOffsetNearestTheRequestedScroll() {
         let pattern = makePage(height: 20, seed: 3)
         let repeating = Array((0..<10).map { _ in pattern }.joined())
-        // Offsets 10, 30, 50 and 70 all match perfectly. 30 is closest to 32.
+        // Offsets 10, 30, 50, 70 and 90 all match perfectly. 30 is closest to 32.
         let result = findOverlap(previous: frame(Array(repeating[0 ..< 100])),
                                  next: frame(Array(repeating[30 ..< 130])),
                                  expectedOffset: 32)

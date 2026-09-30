@@ -11,8 +11,9 @@ cp .build/release/Snapbar "$APP/Contents/MacOS/Snapbar"
 cp Resources/Info.plist "$APP/Contents/Info.plist"
 
 # A stable identity keeps Screen Recording and Accessibility grants across rebuilds.
+# No -v: a self-signed certificate counts as untrusted until set to Always Trust, and -v would hide it.
 IDENTITY="-"
-if security find-identity -v -p codesigning | grep -q "Snapbar Dev"; then
+if security find-identity -p codesigning | grep -q "Snapbar Dev"; then
   IDENTITY="Snapbar Dev"
 fi
 codesign --force --sign "$IDENTITY" --identifier dev.local.snapbar "$APP"
