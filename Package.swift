@@ -6,6 +6,7 @@ let package = Package(
     platforms: [.macOS(.v14)],
     targets: [
         .target(name: "SnapbarCore"),
+        .executableTarget(name: "Snapbar", dependencies: ["SnapbarCore"]),
         .testTarget(name: "SnapbarCoreTests", dependencies: ["SnapbarCore"]),
     ],
     swiftLanguageModes: [.v5]
