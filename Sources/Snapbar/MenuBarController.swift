@@ -6,6 +6,7 @@ final class MenuBarController: NSObject {
         var captureArea: () -> Void
         var captureScreen: () -> Void
         var captureScrolling: () -> Void
+        var chooseFolder: () -> Void
         var openFolder: () -> Void
     }
 
@@ -21,6 +22,7 @@ final class MenuBarController: NSObject {
         menu.addItem(item("Capture Screen", #selector(captureScreen), key: "2"))
         menu.addItem(item("Capture Scrolling", #selector(captureScrolling), key: "3"))
         menu.addItem(.separator())
+        menu.addItem(item("Save To…", #selector(chooseFolder)))
         menu.addItem(item("Open Screenshots Folder", #selector(openFolder)))
         menu.addItem(.separator())
         menu.addItem(NSMenuItem(title: "Quit Snapbar", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
@@ -38,5 +40,6 @@ final class MenuBarController: NSObject {
     @objc private func captureArea() { actions.captureArea() }
     @objc private func captureScreen() { actions.captureScreen() }
     @objc private func captureScrolling() { actions.captureScrolling() }
+    @objc private func chooseFolder() { actions.chooseFolder() }
     @objc private func openFolder() { actions.openFolder() }
 }
