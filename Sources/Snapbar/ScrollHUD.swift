@@ -10,6 +10,8 @@ enum ScrollHUD {
                             styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.level = .statusBar
         panel.isOpaque = false
+        // ScrollCapturer calls `hud.close()` while holding it; release-on-close would over-release under ARC.
+        panel.isReleasedWhenClosed = false
         panel.backgroundColor = NSColor.black.withAlphaComponent(0.75)
         let label = NSTextField(labelWithString: "Scrolling… press Esc to stop")
         label.textColor = .white

@@ -38,6 +38,8 @@ final class SelectionOverlay {
             window.acceptsMouseMovedEvents = true
             window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
             window.setFrame(screen.frame, display: false)
+            // We hold our own strong reference in `windows`; release-on-close would over-release under ARC.
+            window.isReleasedWhenClosed = false
             window.contentView = SelectionView(overlay: self)
             windows.append(window)
         }
@@ -80,7 +82,7 @@ final class SelectionOverlay {
 
     private func finish(_ result: SelectionResult) {
         NSCursor.pop()
-        windows.forEach { $0.orderOut(nil) }
+        windows.forEach { $0.close() }
         windows.removeAll()
         continuation?.resume(returning: result)
         continuation = nil
