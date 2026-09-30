@@ -62,12 +62,14 @@ public struct ScrollSession {
             return stillCount >= 2 ? .finished(.endReached) : .still
 
         case .moved(let overlap):
-            stillCount = 0
-            hasMoved = true
             let bodyEnd = frame.height - overlap.fixedBottom
             let last = segments.count - 1
             let lower = segments[last].rows.lowerBound
-            segments[last].rows = lower ..< max(lower, min(segments[last].rows.upperBound, bodyEnd))
+            // A sticky band that grew past what the last frame added can't be stitched cleanly.
+            guard bodyEnd >= lower else { return .finished(.lostTrack) }
+            stillCount = 0
+            hasMoved = true
+            segments[last].rows = lower ..< bodyEnd
             segments.append(Segment(frameIndex: index, rows: (bodyEnd - overlap.offset) ..< frame.height))
             previous = frame
             return height >= maxHeight ? .finished(.heightLimit) : .moved
