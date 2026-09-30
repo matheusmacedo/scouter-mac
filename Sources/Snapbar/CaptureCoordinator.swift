@@ -5,8 +5,8 @@ import SnapbarCore
 final class CaptureCoordinator {
     private let capturer = Capturer()
     private lazy var scrollCapturer = ScrollCapturer(capturer: capturer)
-    /// Set before the Task starts so a second press can't slip in before the first await.
-    private var scrollInProgress = false
+    /// Set before the Task starts so a second press (of either area or scrolling capture) can't slip in before the first await.
+    private var captureInProgress = false
     private let output: Output
 
     init(output: Output) {
@@ -19,15 +19,24 @@ final class CaptureCoordinator {
         Task { await deliver { try await self.capturer.captureDisplay(containing: point) } }
     }
 
-    func captureScrolling() {
-        guard !scrollInProgress else { return }
-        guard Permissions.ensureScreenRecording(), Permissions.ensureAccessibility() else { return }
-        // Temporary: middle 60% of the primary screen. Task 8 replaces this with a selection.
-        let screen = NSScreen.screens[0].frame
-        let rect = CGRect(x: screen.width * 0.2, y: screen.height * 0.2, width: screen.width * 0.6, height: screen.height * 0.6)
-        scrollInProgress = true
+    func captureArea() {
+        guard !captureInProgress else { return }
+        guard Permissions.ensureScreenRecording() else { return }
+        captureInProgress = true
         Task {
-            defer { scrollInProgress = false }
+            defer { captureInProgress = false }
+            guard case .area(let rect) = await SelectionOverlay.select() else { return }
+            await deliver { try await self.capturer.captureRect(rect) }
+        }
+    }
+
+    func captureScrolling() {
+        guard !captureInProgress else { return }
+        guard Permissions.ensureScreenRecording(), Permissions.ensureAccessibility() else { return }
+        captureInProgress = true
+        Task {
+            defer { captureInProgress = false }
+            guard case .area(let rect) = await SelectionOverlay.select() else { return }
             await deliver { try await self.scrollCapturer.run(rect: rect) }
         }
     }
