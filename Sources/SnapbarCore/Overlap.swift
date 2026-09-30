@@ -55,10 +55,36 @@ public func findOverlap(previous: GrayFrame, next: GrayFrame, expectedOffset: In
     while bottom > 0 && a[height - bottom].isUniform { bottom -= 1 }
     let body = height - top - bottom
 
-    var best: (offset: Int, score: Double)?
+    // Sticky bands with see-through backgrounds show different pixels in every frame, so they
+    // match neither at the same position nor at the scroll offset. A mismatched run at either edge
+    // of the overlap counts as such a band, up to a quarter of the frame.
+    let maxChangingBand = height / 4
+
+    var best: (offset: Int, score: Double, lead: Int, trail: Int)?
     for offset in stride(from: 1, to: body, by: 1) {
+        let rows = top ..< (height - bottom - offset)
+        var firstInformative: Int?, lastInformative = 0
+        var firstMatch: Int?, lastMatch = 0
+        for r in rows {
+            let old = a[r + offset], new = b[r]
+            if old.isUniform && new.isUniform { continue }
+            if firstInformative == nil { firstInformative = r }
+            lastInformative = r
+            if old == new {
+                if firstMatch == nil { firstMatch = r }
+                lastMatch = r
+            }
+        }
+        guard let firstInformative, let firstMatch else { continue }
+        // Blank rows at the edges aren't a band. Count from the first and last rows with content.
+        let lead = firstMatch - firstInformative
+        let trail = lastInformative - lastMatch
+        // The matched span must cover most of the overlap, or a few coincidental rows could win.
+        guard lead <= maxChangingBand, trail <= maxChangingBand,
+              (lastMatch - firstMatch + 1) * 2 >= rows.count else { continue }
+
         var matches = 0, informative = 0
-        for r in top ..< (height - bottom - offset) {
+        for r in firstMatch ... lastMatch {
             let old = a[r + offset], new = b[r]
             if old.isUniform && new.isUniform { continue }
             informative += 1
@@ -71,11 +97,11 @@ public func findOverlap(previous: GrayFrame, next: GrayFrame, expectedOffset: In
             let better = score > current.score + 1e-9
             let tieButCloser = abs(score - current.score) <= 1e-9
                 && abs(offset - expectedOffset) < abs(current.offset - expectedOffset)
-            if better || tieButCloser { best = (offset, score) }
+            if better || tieButCloser { best = (offset, score, lead, trail) }
         } else {
-            best = (offset, score)
+            best = (offset, score, lead, trail)
         }
     }
     guard let best else { return .noMatch }
-    return .moved(Overlap(offset: best.offset, fixedTop: top, fixedBottom: bottom))
+    return .moved(Overlap(offset: best.offset, fixedTop: top + best.lead, fixedBottom: bottom + best.trail))
 }

@@ -67,7 +67,13 @@ struct Capturer {
     }
 
     private func capture(display: SCDisplay, sourceRect: CGRect?, content: SCShareableContent) async throws -> Capture {
-        let filter = SCContentFilter(display: display, excludingWindows: ownWindows(content))
+        // Excluding the whole app also covers windows opened after this content snapshot, like the scroll HUD.
+        let pid = ProcessInfo.processInfo.processIdentifier
+        let filter = if let ownApp = content.applications.first(where: { $0.processID == pid }) {
+            SCContentFilter(display: display, excludingApplications: [ownApp], exceptingWindows: [])
+        } else {
+            SCContentFilter(display: display, excludingWindows: ownWindows(content))
+        }
         let scale = CGFloat(filter.pointPixelScale)
         let size = sourceRect?.size ?? display.frame.size
         let config = SCStreamConfiguration()

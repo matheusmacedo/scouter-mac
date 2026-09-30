@@ -56,7 +56,7 @@ struct ScrollSessionTests {
         #expect(session.height == 100)
     }
 
-    @Test func footerGrowingPastTheLastSegmentStopsInsteadOfMisStitching() {
+    @Test func footerThatGrowsMidScrollIsStitchedOnce() {
         let smallFooter = makePage(height: 6, seed: 9)
         let bigFooter = makePage(height: 34, seed: 11) + smallFooter
         let frames = [
@@ -66,8 +66,8 @@ struct ScrollSessionTests {
         ]
         var session = ScrollSession(first: frames[0], expectedOffset: 30, maxHeight: 10_000)
         #expect(session.add(frames[1]) == .moved)
-        #expect(session.add(frames[2]) == .finished(.lostTrack))
-        #expect(session.segments == [Segment(frameIndex: 0, rows: 0 ..< 94), Segment(frameIndex: 1, rows: 64 ..< 100)])
+        #expect(session.add(frames[2]) == .moved)
+        #expect(assemble(session.segments, frames: frames) == Array(page[0 ..< 120]) + bigFooter)
     }
 
     @Test func stopsAtTheHeightLimit() {

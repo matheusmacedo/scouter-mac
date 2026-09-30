@@ -55,4 +55,19 @@ struct OverlapTests {
                                  expectedOffset: 50)
         #expect(result == .moved(Overlap(offset: 45, fixedTop: 0, fixedBottom: 0)))
     }
+
+    @Test func translucentStickyHeaderThatChangesEveryFrameStillMatches() {
+        // A blurred header shows different pixels in every frame, so it's neither fixed nor moving content.
+        let result = findOverlap(previous: viewport(page, top: 0, height: 100, header: makePage(height: 10, seed: 21)),
+                                 next: viewport(page, top: 60, height: 100, header: makePage(height: 10, seed: 22)),
+                                 expectedOffset: 60)
+        #expect(result == .moved(Overlap(offset: 60, fixedTop: 10, fixedBottom: 0)))
+    }
+
+    @Test func changingBandAtTheBottomCountsAsFixedFooter() {
+        let result = findOverlap(previous: viewport(page, top: 0, height: 100, footer: makePage(height: 8, seed: 31)),
+                                 next: viewport(page, top: 60, height: 100, footer: makePage(height: 8, seed: 32)),
+                                 expectedOffset: 60)
+        #expect(result == .moved(Overlap(offset: 60, fixedTop: 0, fixedBottom: 8)))
+    }
 }
