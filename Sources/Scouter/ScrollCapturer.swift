@@ -1,5 +1,5 @@
 import AppKit
-import SnapbarCore
+import ScouterCore
 
 enum ScrollCaptureError: LocalizedError {
     case unreadableFrame

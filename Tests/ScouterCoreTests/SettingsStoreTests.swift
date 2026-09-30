@@ -1,12 +1,12 @@
 import Foundation
 import Testing
-@testable import SnapbarCore
+@testable import ScouterCore
 
 struct SettingsStoreTests {
-    let fallback = URL(fileURLWithPath: "/tmp/snapbar-default", isDirectory: true)
+    let fallback = URL(fileURLWithPath: "/tmp/scouter-default", isDirectory: true)
 
     func withDefaults(_ body: (UserDefaults) throws -> Void) rethrows {
-        let suite = "snapbar-tests-\(UUID().uuidString)"
+        let suite = "scouter-tests-\(UUID().uuidString)"
         let defaults = UserDefaults(suiteName: suite)!
         defer { defaults.removePersistentDomain(forName: suite) }
         try body(defaults)

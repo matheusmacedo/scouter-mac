@@ -16,7 +16,7 @@ final class MenuBarController: NSObject {
     init(actions: Actions) {
         self.actions = actions
         super.init()
-        statusItem.button?.image = NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: "Snapbar")
+        statusItem.button?.image = Self.menuBarIcon()
         let menu = NSMenu()
         menu.addItem(item("Capture Area or Window", #selector(captureArea), key: "1"))
         menu.addItem(item("Capture Screen", #selector(captureScreen), key: "2"))
@@ -25,8 +25,18 @@ final class MenuBarController: NSObject {
         menu.addItem(item("Save To…", #selector(chooseFolder)))
         menu.addItem(item("Open Screenshots Folder", #selector(openFolder)))
         menu.addItem(.separator())
-        menu.addItem(NSMenuItem(title: "Quit Snapbar", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
+        menu.addItem(NSMenuItem(title: "Quit Scouter", action: #selector(NSApplication.terminate(_:)), keyEquivalent: "q"))
         statusItem.menu = menu
+    }
+
+    /// The scouter outline from the bundle, tinted by macOS for light and dark menu bars.
+    private static func menuBarIcon() -> NSImage? {
+        guard let icon = NSImage(named: "MenuBarIcon") else {
+            return NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: "Scouter")
+        }
+        icon.isTemplate = true
+        icon.accessibilityDescription = "Scouter"
+        return icon
     }
 
     /// Key equivalents here are display hints. The real global shortcuts come from HotkeyManager.

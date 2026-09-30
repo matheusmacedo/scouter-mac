@@ -1,6 +1,6 @@
 import Foundation
 import Testing
-@testable import SnapbarCore
+@testable import ScouterCore
 
 struct CaptureNamingTests {
     let utc = TimeZone(identifier: "UTC")!
@@ -12,7 +12,7 @@ struct CaptureNamingTests {
     }
 
     @Test func fileNameHasDateAndTime() {
-        #expect(CaptureNaming.fileName(for: sampleDate(), timeZone: utc) == "Snapbar 2026-09-30 at 14.03.22.png")
+        #expect(CaptureNaming.fileName(for: sampleDate(), timeZone: utc) == "Scouter 2026-09-30 at 14.03.22.png")
     }
 
     @Test func uniqueURLAddsCounterWhenNameIsTaken() throws {
@@ -20,14 +20,14 @@ struct CaptureNamingTests {
         defer { try? FileManager.default.removeItem(at: dir) }
 
         let first = CaptureNaming.uniqueURL(in: dir, date: sampleDate(), timeZone: utc)
-        #expect(first.lastPathComponent == "Snapbar 2026-09-30 at 14.03.22.png")
+        #expect(first.lastPathComponent == "Scouter 2026-09-30 at 14.03.22.png")
 
         FileManager.default.createFile(atPath: first.path, contents: Data())
         let second = CaptureNaming.uniqueURL(in: dir, date: sampleDate(), timeZone: utc)
-        #expect(second.lastPathComponent == "Snapbar 2026-09-30 at 14.03.22 (2).png")
+        #expect(second.lastPathComponent == "Scouter 2026-09-30 at 14.03.22 (2).png")
 
         FileManager.default.createFile(atPath: second.path, contents: Data())
         let third = CaptureNaming.uniqueURL(in: dir, date: sampleDate(), timeZone: utc)
-        #expect(third.lastPathComponent == "Snapbar 2026-09-30 at 14.03.22 (3).png")
+        #expect(third.lastPathComponent == "Scouter 2026-09-30 at 14.03.22 (3).png")
     }
 }

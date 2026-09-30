@@ -1,5 +1,5 @@
 import Testing
-@testable import SnapbarCore
+@testable import ScouterCore
 
 struct ScrollSessionTests {
     let page = makePage(height: 400)

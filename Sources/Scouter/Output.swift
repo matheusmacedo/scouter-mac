@@ -1,5 +1,5 @@
 import AppKit
-import SnapbarCore
+import ScouterCore
 
 enum OutputError: LocalizedError {
     case encodingFailed

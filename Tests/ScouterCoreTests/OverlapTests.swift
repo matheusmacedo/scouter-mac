@@ -1,5 +1,5 @@
 import Testing
-@testable import SnapbarCore
+@testable import ScouterCore
 
 struct OverlapTests {
     let page = makePage(height: 300)

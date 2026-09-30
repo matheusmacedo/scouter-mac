@@ -1,6 +1,6 @@
 import CoreGraphics
 import Testing
-@testable import SnapbarCore
+@testable import ScouterCore
 
 struct WindowHitTestTests {
     func window(_ id: UInt32, _ frame: CGRect, pid: Int32 = 100, layer: Int = 0, alpha: Double = 1) -> WindowInfo {

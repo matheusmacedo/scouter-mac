@@ -1,6 +1,6 @@
 import AppKit
 import Carbon.HIToolbox
-import SnapbarCore
+import ScouterCore
 
 final class AppDelegate: NSObject, NSApplicationDelegate {
     private var menuBar: MenuBarController?

@@ -6,7 +6,7 @@ public enum CaptureNaming {
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = timeZone
         formatter.dateFormat = "yyyy-MM-dd 'at' HH.mm.ss"
-        return "Snapbar \(formatter.string(from: date))\(suffix).png"
+        return "Scouter \(formatter.string(from: date))\(suffix).png"
     }
 
     public static func uniqueURL(

@@ -1,6 +1,6 @@
 import CoreGraphics
 import Testing
-@testable import SnapbarCore
+@testable import ScouterCore
 
 struct GeometryTests {
     @Test func appKitRectFlipsToCGGlobal() {

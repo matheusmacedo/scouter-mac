@@ -1,7 +1,7 @@
 import CoreGraphics
 import ImageIO
 import Testing
-@testable import SnapbarCore
+@testable import ScouterCore
 
 struct ImageEncodingTests {
     @Test func pngRoundTripKeepsSize() throws {

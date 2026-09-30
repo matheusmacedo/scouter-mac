@@ -1,5 +1,5 @@
 import AppKit
-import SnapbarCore
+import ScouterCore
 
 enum SelectionResult {
     /// CG global points.
@@ -48,7 +48,7 @@ final class SelectionOverlay {
             window.acceptsMouseMovedEvents = true
             window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
             window.setFrame(screen.frame, display: false)
-            // NSPanel hides itself when the owning app isn't active; the overlay must stay up over Snapbar.
+            // NSPanel hides itself when the owning app isn't active; the overlay must stay up over Scouter.
             window.hidesOnDeactivate = false
             // We hold our own strong reference in `windows`; release-on-close would over-release under ARC.
             window.isReleasedWhenClosed = false

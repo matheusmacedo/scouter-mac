@@ -1,6 +1,6 @@
 import AppKit
 import ScreenCaptureKit
-import SnapbarCore
+import ScouterCore
 
 struct Capture {
     let image: CGImage

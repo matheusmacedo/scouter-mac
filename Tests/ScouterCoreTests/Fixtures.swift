@@ -1,6 +1,6 @@
 import CoreGraphics
 import Foundation
-@testable import SnapbarCore
+@testable import ScouterCore
 
 func makeGrayImage(width: Int, height: Int, pixels: [UInt8]) -> CGImage {
     let data = CFDataCreate(nil, pixels, pixels.count)!

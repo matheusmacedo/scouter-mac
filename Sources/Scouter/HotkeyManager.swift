@@ -32,7 +32,7 @@ final class HotkeyManager {
         if status == noErr, let ref {
             refs.append(ref)
         } else {
-            NSLog("Snapbar: couldn't register hotkey %d, another app may own it (status %d)", keyCode, status)
+            NSLog("Scouter: couldn't register hotkey %d, another app may own it (status %d)", keyCode, status)
         }
     }
 }

@@ -1,5 +1,5 @@
 import Testing
-@testable import SnapbarCore
+@testable import ScouterCore
 
 struct GrayFrameTests {
     @Test func convertsCGImageWithTopRowFirst() throws {

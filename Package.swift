@@ -2,12 +2,12 @@
 import PackageDescription
 
 let package = Package(
-    name: "Snapbar",
+    name: "Scouter",
     platforms: [.macOS(.v14)],
     targets: [
-        .target(name: "SnapbarCore"),
-        .executableTarget(name: "Snapbar", dependencies: ["SnapbarCore"]),
-        .testTarget(name: "SnapbarCoreTests", dependencies: ["SnapbarCore"]),
+        .target(name: "ScouterCore"),
+        .executableTarget(name: "Scouter", dependencies: ["ScouterCore"]),
+        .testTarget(name: "ScouterCoreTests", dependencies: ["ScouterCore"]),
     ],
     swiftLanguageModes: [.v5]
 )
