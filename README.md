@@ -68,7 +68,6 @@ Tests/ScouterCoreTests Swift Testing suite for the core
 scripts/bundle.sh      build and package Scouter.app
 scripts/test.sh        run the tests
 scripts/make-icon.swift regenerate the app and menu bar icons from Resources/scouter-source.jpg
-docs/superpowers/      the original design and implementation plan
 ```
 
 ## Tests
