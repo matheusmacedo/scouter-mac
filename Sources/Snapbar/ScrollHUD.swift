@@ -10,6 +10,9 @@ enum ScrollHUD {
                             styleMask: [.borderless, .nonactivatingPanel], backing: .buffered, defer: false)
         panel.level = .statusBar
         panel.isOpaque = false
+        panel.hidesOnDeactivate = false
+        // Posted scroll events land on the HUD's screen point; let them pass through to the page underneath.
+        panel.ignoresMouseEvents = true
         // ScrollCapturer calls `hud.close()` while holding it; release-on-close would over-release under ARC.
         panel.isReleasedWhenClosed = false
         panel.backgroundColor = NSColor.black.withAlphaComponent(0.75)

@@ -48,6 +48,8 @@ final class ScrollCapturer {
             try await Task.sleep(for: .milliseconds(300))
             let shot = try await capturer.captureRect(rect)
             guard let gray = GrayFrame(cgImage: shot.image) else { throw ScrollCaptureError.unreadableFrame }
+            // A display change mid-capture would otherwise hit findOverlap's precondition and crash.
+            guard gray.width == firstGray.width, gray.height == firstGray.height else { break loop }
             index += 1
             let step = session.add(gray)
             // Only frames the stitched image uses stay in memory.

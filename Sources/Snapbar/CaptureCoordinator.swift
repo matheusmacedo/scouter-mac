@@ -40,6 +40,10 @@ final class CaptureCoordinator {
         Task {
             defer { captureInProgress = false }
             guard case .area(let rect) = await SelectionOverlay.select(allowsWindowMode: false) else { return }
+            guard rect.height >= 100 else {
+                Alerts.info("Select an area at least 100 points tall for a scrolling capture.")
+                return
+            }
             await deliver { try await self.scrollCapturer.run(rect: rect) }
         }
     }

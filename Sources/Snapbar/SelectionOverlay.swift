@@ -40,20 +40,22 @@ final class SelectionOverlay {
 
     private func show() {
         for screen in NSScreen.screens {
-            let window = OverlayWindow(contentRect: screen.frame, styleMask: .borderless, backing: .buffered, defer: false)
+            let window = OverlayWindow(contentRect: screen.frame, styleMask: [.borderless, .nonactivatingPanel],
+                                       backing: .buffered, defer: false)
             window.level = .screenSaver
             window.isOpaque = false
             window.backgroundColor = .clear
             window.acceptsMouseMovedEvents = true
             window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
             window.setFrame(screen.frame, display: false)
+            // NSPanel hides itself when the owning app isn't active; the overlay must stay up over Snapbar.
+            window.hidesOnDeactivate = false
             // We hold our own strong reference in `windows`; release-on-close would over-release under ARC.
             window.isReleasedWhenClosed = false
             window.contentView = SelectionView(overlay: self)
             windows.append(window)
         }
         windows.forEach { $0.orderFrontRegardless() }
-        NSApp.activate(ignoringOtherApps: true)
         windows.first?.makeKey()
         NSCursor.crosshair.push()
     }
@@ -133,7 +135,7 @@ final class SelectionOverlay {
     }
 }
 
-private final class OverlayWindow: NSWindow {
+private final class OverlayWindow: NSPanel {
     override var canBecomeKey: Bool { true }
 }
 
@@ -149,6 +151,7 @@ private final class SelectionView: NSView {
 
     override var acceptsFirstResponder: Bool { true }
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+    override func resetCursorRects() { addCursorRect(bounds, cursor: .crosshair) }
 
     private func globalPoint(_ event: NSEvent) -> NSPoint {
         window?.convertPoint(toScreen: event.locationInWindow) ?? event.locationInWindow

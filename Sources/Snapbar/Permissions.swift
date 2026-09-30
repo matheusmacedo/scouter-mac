@@ -12,6 +12,8 @@ enum Permissions {
 
     static func ensureAccessibility() -> Bool {
         let prompt = kAXTrustedCheckOptionPrompt.takeUnretainedValue() as String
-        return AXIsProcessTrustedWithOptions([prompt: true] as CFDictionary)
+        if AXIsProcessTrustedWithOptions([prompt: true] as CFDictionary) { return true }
+        Alerts.info("Allow Snapbar under System Settings > Privacy & Security > Accessibility, then quit and reopen Snapbar.")
+        return false
     }
 }
