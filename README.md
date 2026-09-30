@@ -81,4 +81,10 @@ With only the Command Line Tools installed, SwiftPM doesn't find the Swift Testi
 
 ## Icon
 
-The icon is fan art of the scouter from Dragon Ball, which Toei Animation owns. It's here for personal use only. Swap `Resources/scouter-source.jpg` and run `swift scripts/make-icon.swift` to change it.
+To change the icon, swap `Resources/scouter-source.jpg` and run `swift scripts/make-icon.swift`.
+
+## Disclaimer
+
+Scouter is a personal, non-commercial fan project. It is not affiliated with, endorsed by, or connected to Dragon Ball, Akira Toriyama, Bird Studio, Shueisha, Toei Animation or any of their partners. Dragon Ball, the scouter design and all related names and artwork belong to their respective owners. We don't own any of it.
+
+The icon art is fan art found online and is used here only as a personal app icon. The name is a nod to the show, nothing more. Nothing here is for sale or distribution. If you're a rights holder and want anything removed, open an issue and it'll be taken down.
