@@ -57,9 +57,9 @@ final class ScrollCapturer {
             if case .finished = step { break loop }
         }
 
-        guard let image = StitchRenderer.render(frames: frames, segments: session.segments) else {
-            throw ScrollCaptureError.renderFailed
-        }
+        let segments = session.segments
+        let rendered = await (Task.detached { StitchRenderer.render(frames: frames, segments: segments) }).value
+        guard let image = rendered else { throw ScrollCaptureError.renderFailed }
         return Capture(image: image, scale: first.scale)
     }
 

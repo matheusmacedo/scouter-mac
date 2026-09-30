@@ -10,24 +10,23 @@ struct Output {
     let folder: () -> URL
 
     @discardableResult
-    func deliver(_ capture: Capture) throws -> URL {
-        guard let png = ImageEncoding.png(capture.image) else { throw OutputError.encodingFailed }
+    func deliver(_ capture: Capture) async throws -> URL {
+        let image = capture.image, scale = capture.scale
+        guard let png = await (Task.detached { ImageEncoding.png(image, scale: scale) }).value else {
+            throw OutputError.encodingFailed
+        }
         let dir = folder()
         try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         let url = CaptureNaming.uniqueURL(in: dir, date: Date())
         try png.write(to: url)
-        copyToClipboard(capture, png: png)
+        copyToClipboard(png: png)
         return url
     }
 
-    /// Point size so the image pastes at its on-screen size, PNG plus TIFF so every app accepts it.
-    private func copyToClipboard(_ capture: Capture, png: Data) {
-        let size = NSSize(width: CGFloat(capture.image.width) / capture.scale,
-                          height: CGFloat(capture.image.height) / capture.scale)
-        let image = NSImage(cgImage: capture.image, size: size)
+    /// PNG only; every app that accepts a screenshot paste reads PNG.
+    private func copyToClipboard(png: Data) {
         let item = NSPasteboardItem()
         item.setData(png, forType: .png)
-        if let tiff = image.tiffRepresentation { item.setData(tiff, forType: .tiff) }
         NSPasteboard.general.clearContents()
         NSPasteboard.general.writeObjects([item])
     }

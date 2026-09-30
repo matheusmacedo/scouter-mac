@@ -51,7 +51,7 @@ final class CaptureCoordinator {
     private func deliver(_ work: () async throws -> Capture) async {
         do {
             let capture = try await work()
-            try output.deliver(capture)
+            try await output.deliver(capture)
             NSSound(named: "Tink")?.play()
         } catch {
             Alerts.show(error)
