@@ -17,7 +17,7 @@ final class MenuBarController: NSObject {
         super.init()
         statusItem.button?.image = NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: "Snapbar")
         let menu = NSMenu()
-        menu.addItem(item("Capture Area", #selector(captureArea), key: "1"))
+        menu.addItem(item("Capture Area or Window", #selector(captureArea), key: "1"))
         menu.addItem(item("Capture Screen", #selector(captureScreen), key: "2"))
         menu.addItem(item("Capture Scrolling", #selector(captureScrolling), key: "3"))
         menu.addItem(.separator())

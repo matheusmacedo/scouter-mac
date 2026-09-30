@@ -25,8 +25,11 @@ final class CaptureCoordinator {
         captureInProgress = true
         Task {
             defer { captureInProgress = false }
-            guard case .area(let rect) = await SelectionOverlay.select() else { return }
-            await deliver { try await self.capturer.captureRect(rect) }
+            switch await SelectionOverlay.select(allowsWindowMode: true) {
+            case .area(let rect): await deliver { try await self.capturer.captureRect(rect) }
+            case .window(let window): await deliver { try await self.capturer.captureWindow(id: window.id) }
+            case .cancelled: return
+            }
         }
     }
 
@@ -36,7 +39,7 @@ final class CaptureCoordinator {
         captureInProgress = true
         Task {
             defer { captureInProgress = false }
-            guard case .area(let rect) = await SelectionOverlay.select() else { return }
+            guard case .area(let rect) = await SelectionOverlay.select(allowsWindowMode: false) else { return }
             await deliver { try await self.scrollCapturer.run(rect: rect) }
         }
     }

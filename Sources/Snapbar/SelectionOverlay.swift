@@ -4,6 +4,7 @@ import SnapbarCore
 enum SelectionResult {
     /// CG global points.
     case area(CGRect)
+    case window(WindowInfo)
     case cancelled
 }
 
@@ -14,9 +15,17 @@ final class SelectionOverlay {
     private var continuation: CheckedContinuation<SelectionResult, Never>?
     fileprivate var dragStart: NSPoint?
     fileprivate var dragCurrent: NSPoint?
+    private let allowsWindowMode: Bool
+    private var windowList: [WindowInfo] = []
+    fileprivate var inWindowMode = false
+    fileprivate var hovered: WindowInfo?
 
-    static func select() async -> SelectionResult {
-        let overlay = SelectionOverlay()
+    private init(allowsWindowMode: Bool) {
+        self.allowsWindowMode = allowsWindowMode
+    }
+
+    static func select(allowsWindowMode: Bool) async -> SelectionResult {
+        let overlay = SelectionOverlay(allowsWindowMode: allowsWindowMode)
         return await withCheckedContinuation { continuation in
             overlay.continuation = continuation
             overlay.show()
@@ -54,17 +63,23 @@ final class SelectionOverlay {
     }
 
     fileprivate func mouseDown(at point: NSPoint) {
+        if inWindowMode {
+            if let hovered { finish(.window(hovered)) }
+            return
+        }
         dragStart = point
         dragCurrent = point
         redraw()
     }
 
     fileprivate func mouseDragged(to point: NSPoint) {
+        guard !inWindowMode else { return }
         dragCurrent = point
         redraw()
     }
 
     fileprivate func mouseUp(at point: NSPoint) {
+        guard !inWindowMode else { return }
         dragCurrent = point
         // A click without a real drag resets instead of capturing a sliver.
         guard let rect = selection, rect.width >= 4, rect.height >= 4 else {
@@ -77,7 +92,36 @@ final class SelectionOverlay {
     }
 
     fileprivate func keyDown(_ event: NSEvent) {
-        if event.keyCode == 53 { finish(.cancelled) }
+        switch event.keyCode {
+        case 53:
+            finish(.cancelled)
+        case 49 where allowsWindowMode:
+            inWindowMode.toggle()
+            dragStart = nil
+            dragCurrent = nil
+            if inWindowMode {
+                windowList = WindowList.current()
+                mouseMoved(to: NSEvent.mouseLocation)
+            }
+            redraw()
+        default:
+            break
+        }
+    }
+
+    fileprivate func mouseMoved(to point: NSPoint) {
+        guard inWindowMode else { return }
+        let cgPoint = Geometry.cgGlobal(fromAppKit: point, primaryScreenHeight: Screens.primaryHeight)
+        let hit = WindowHitTest.topmost(at: cgPoint, in: windowList, excludingPID: ProcessInfo.processInfo.processIdentifier)
+        if hit != hovered {
+            hovered = hit
+            redraw()
+        }
+    }
+
+    /// AppKit global coordinates of the hovered window, for drawing.
+    fileprivate var hoveredRect: NSRect? {
+        hovered.map { Geometry.appKit(fromCG: $0.frame, primaryScreenHeight: Screens.primaryHeight) }
     }
 
     private func finish(_ result: SelectionResult) {
@@ -114,10 +158,24 @@ private final class SelectionView: NSView {
     override func mouseDragged(with event: NSEvent) { overlay.mouseDragged(to: globalPoint(event)) }
     override func mouseUp(with event: NSEvent) { overlay.mouseUp(at: globalPoint(event)) }
     override func keyDown(with event: NSEvent) { overlay.keyDown(event) }
+    override func mouseMoved(with event: NSEvent) { overlay.mouseMoved(to: globalPoint(event)) }
+
+    override func updateTrackingAreas() {
+        super.updateTrackingAreas()
+        trackingAreas.forEach(removeTrackingArea)
+        addTrackingArea(NSTrackingArea(rect: .zero, options: [.mouseMoved, .activeAlways, .inVisibleRect], owner: self))
+    }
 
     override func draw(_ dirtyRect: NSRect) {
         NSColor.black.withAlphaComponent(0.25).setFill()
         bounds.fill()
+        if overlay.inWindowMode {
+            guard let global = overlay.hoveredRect, let window else { return }
+            let local = global.offsetBy(dx: -window.frame.minX, dy: -window.frame.minY)
+            NSColor.systemBlue.withAlphaComponent(0.3).setFill()
+            local.fill()
+            return
+        }
         guard let global = overlay.selection, let window else { return }
         let local = global.offsetBy(dx: -window.frame.minX, dy: -window.frame.minY)
         NSColor.clear.setFill()

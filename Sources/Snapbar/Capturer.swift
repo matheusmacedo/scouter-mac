@@ -41,6 +41,21 @@ struct Capturer {
         return try await capture(display: display, sourceRect: local, content: content)
     }
 
+    func captureWindow(id: CGWindowID) async throws -> Capture {
+        let content = try await shareableContent()
+        guard let window = content.windows.first(where: { $0.windowID == id }) else { throw CaptureError.noWindow }
+        let filter = SCContentFilter(desktopIndependentWindow: window)
+        let scale = CGFloat(filter.pointPixelScale)
+        let config = SCStreamConfiguration()
+        config.width = Int(window.frame.width * scale)
+        config.height = Int(window.frame.height * scale)
+        config.showsCursor = false
+        // Shadows would make the image bigger than the configured size and get squashed.
+        config.ignoreShadowsSingleWindow = true
+        let image = try await SCScreenshotManager.captureImage(contentFilter: filter, configuration: config)
+        return Capture(image: image, scale: scale)
+    }
+
     private func shareableContent() async throws -> SCShareableContent {
         try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
     }
