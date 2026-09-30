@@ -10,6 +10,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         self.coordinator = coordinator
         menuBar = MenuBarController(actions: .init(
             captureScreen: { coordinator.captureScreen() },
+            captureScrolling: { coordinator.captureScrolling() },
             openFolder: { NSWorkspace.shared.open(desktop) }
         ))
     }

@@ -4,6 +4,7 @@ import SnapbarCore
 @MainActor
 final class CaptureCoordinator {
     private let capturer = Capturer()
+    private lazy var scrollCapturer = ScrollCapturer(capturer: capturer)
     private let output: Output
 
     init(output: Output) {
@@ -14,6 +15,14 @@ final class CaptureCoordinator {
         guard Permissions.ensureScreenRecording() else { return }
         let point = Geometry.cgGlobal(fromAppKit: NSEvent.mouseLocation, primaryScreenHeight: Screens.primaryHeight)
         Task { await deliver { try await self.capturer.captureDisplay(containing: point) } }
+    }
+
+    func captureScrolling() {
+        guard Permissions.ensureScreenRecording(), Permissions.ensureAccessibility() else { return }
+        // Temporary: middle 60% of the primary screen. Task 8 replaces this with a selection.
+        let screen = NSScreen.screens[0].frame
+        let rect = CGRect(x: screen.width * 0.2, y: screen.height * 0.2, width: screen.width * 0.6, height: screen.height * 0.6)
+        Task { await deliver { try await self.scrollCapturer.run(rect: rect) } }
     }
 
     private func deliver(_ work: () async throws -> Capture) async {

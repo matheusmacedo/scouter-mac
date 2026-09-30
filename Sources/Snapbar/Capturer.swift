@@ -28,6 +28,19 @@ struct Capturer {
         return try await capture(display: display, sourceRect: nil, content: content)
     }
 
+    /// `rect` is in CG global points. The display under the rect's center is used, and anything
+    /// outside that display gets clipped.
+    func captureRect(_ rect: CGRect) async throws -> Capture {
+        let content = try await shareableContent()
+        let center = CGPoint(x: rect.midX, y: rect.midY)
+        guard let display = content.displays.first(where: { $0.frame.contains(center) }) else {
+            throw CaptureError.noDisplay
+        }
+        let local = Geometry.displayLocal(rect, displayFrame: display.frame)
+            .intersection(CGRect(origin: .zero, size: display.frame.size))
+        return try await capture(display: display, sourceRect: local, content: content)
+    }
+
     private func shareableContent() async throws -> SCShareableContent {
         try await SCShareableContent.excludingDesktopWindows(false, onScreenWindowsOnly: true)
     }

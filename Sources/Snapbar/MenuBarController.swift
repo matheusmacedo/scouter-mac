@@ -4,6 +4,7 @@ import AppKit
 final class MenuBarController: NSObject {
     struct Actions {
         var captureScreen: () -> Void
+        var captureScrolling: () -> Void
         var openFolder: () -> Void
     }
 
@@ -16,6 +17,7 @@ final class MenuBarController: NSObject {
         statusItem.button?.image = NSImage(systemSymbolName: "camera.viewfinder", accessibilityDescription: "Snapbar")
         let menu = NSMenu()
         menu.addItem(item("Capture Screen", #selector(captureScreen), key: "2"))
+        menu.addItem(item("Capture Scrolling", #selector(captureScrolling), key: "3"))
         menu.addItem(.separator())
         menu.addItem(item("Open Screenshots Folder", #selector(openFolder)))
         menu.addItem(.separator())
@@ -32,5 +34,6 @@ final class MenuBarController: NSObject {
     }
 
     @objc private func captureScreen() { actions.captureScreen() }
+    @objc private func captureScrolling() { actions.captureScrolling() }
     @objc private func openFolder() { actions.openFolder() }
 }
