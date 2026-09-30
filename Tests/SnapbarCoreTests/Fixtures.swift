@@ -38,3 +38,7 @@ func viewport(_ page: [[UInt8]], top: Int, height: Int, header: [[UInt8]] = [], 
     let bodyCount = height - header.count - footer.count
     return frame(header + Array(page[top ..< top + bodyCount]) + footer)
 }
+
+func assemble(_ segments: [Segment], frames: [GrayFrame]) -> [[UInt8]] {
+    segments.flatMap { segment in segment.rows.map { Array(frames[segment.frameIndex].row($0)) } }
+}
