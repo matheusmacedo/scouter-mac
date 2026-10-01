@@ -39,6 +39,16 @@ func viewport(_ page: [[UInt8]], top: Int, height: Int, header: [[UInt8]] = [], 
     return frame(header + Array(page[top ..< top + bodyCount]) + footer)
 }
 
+/// Replaces `columns` of every row with fresh noise, like an animation playing in place.
+func animate(_ source: GrayFrame, columns: Range<Int>, seed: UInt64) -> GrayFrame {
+    let noise = makePage(width: columns.count, height: source.height, seed: seed)
+    return frame((0..<source.height).map { y in
+        var row = Array(source.row(y))
+        row.replaceSubrange(columns, with: noise[y])
+        return row
+    })
+}
+
 func assemble(_ segments: [Segment], frames: [GrayFrame]) -> [[UInt8]] {
     segments.flatMap { segment in segment.rows.map { Array(frames[segment.frameIndex].row($0)) } }
 }

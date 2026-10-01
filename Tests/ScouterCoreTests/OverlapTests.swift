@@ -70,4 +70,17 @@ struct OverlapTests {
                                  expectedOffset: 60)
         #expect(result == .moved(Overlap(offset: 60, fixedTop: 0, fixedBottom: 8)))
     }
+
+    @Test func animationInPlaceOnOneSideDoesNotBreakTheMatch() {
+        // Floating cards on the right redraw every frame. The left half still scrolls cleanly.
+        let next = animate(viewport(page, top: 37, height: 100), columns: 8 ..< 16, seed: 41)
+        let result = findOverlap(previous: viewport(page, top: 0, height: 100), next: next, expectedOffset: 40)
+        #expect(result == .moved(Overlap(offset: 37, fixedTop: 0, fixedBottom: 0)))
+    }
+
+    @Test func stillPageWithAnimationOnOneSideMeansNoMovement() {
+        let still = viewport(page, top: 20, height: 100)
+        let result = findOverlap(previous: still, next: animate(still, columns: 8 ..< 16, seed: 41), expectedOffset: 40)
+        #expect(result == .noMovement)
+    }
 }

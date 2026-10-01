@@ -26,9 +26,11 @@ struct RowSignature: Equatable {
     let isUniform: Bool
 }
 
-func rowSignatures(_ frame: GrayFrame) -> [RowSignature] {
-    (0..<frame.height).map { y in
-        let row = frame.row(y)
+/// `columns` limits each signature to a vertical strip of the frame.
+func rowSignatures(_ frame: GrayFrame, columns: Range<Int>? = nil) -> [RowSignature] {
+    let columns = columns ?? 0 ..< frame.width
+    return (0..<frame.height).map { y in
+        let row = frame.row(y).dropFirst(columns.lowerBound).prefix(columns.count)
         var hash: UInt64 = 0xcbf29ce484222325
         for byte in row {
             hash = (hash ^ UInt64(byte)) &* 0x100000001b3
@@ -37,9 +39,21 @@ func rowSignatures(_ frame: GrayFrame) -> [RowSignature] {
     }
 }
 
+let stripCount = 8
+
+struct Candidate {
+    let offset: Int
+    let score: Double
+    /// Mismatched rows at the top and bottom of the overlap, taken as see-through sticky bands.
+    let lead: Int
+    let trail: Int
+}
+
 /// Finds how far content scrolled up between two same-sized frames.
 /// Blank rows on both sides don't count, so empty space can't fake a match.
 /// Ties go to the offset nearest `expectedOffset`, which matters for repeating content.
+/// When whole rows don't match, it matches vertical strips on their own, so something
+/// animating in place on one side of the frame can't hide that the rest scrolled.
 public func findOverlap(previous: GrayFrame, next: GrayFrame, expectedOffset: Int) -> OverlapResult {
     precondition(previous.width == next.width && previous.height == next.height, "frames must be the same size")
     let a = rowSignatures(previous), b = rowSignatures(next)
@@ -55,13 +69,42 @@ public func findOverlap(previous: GrayFrame, next: GrayFrame, expectedOffset: In
     while bottom > 0 && a[height - bottom].isUniform { bottom -= 1 }
     let body = height - top - bottom
 
+    let rowMatch = candidates(a, b, top: top, bottom: bottom, offsets: 1 ..< body)
+    if let best = nearest(rowMatch, to: expectedOffset) {
+        return .moved(Overlap(offset: best.offset, fixedTop: top + best.lead, fixedBottom: bottom + best.trail))
+    }
+
+    // Each strip votes for the one offset it matches. A strip that matches nowhere is animating,
+    // and one that matches in several places is too plain to tell.
+    let strips = min(stripCount, previous.width)
+    let votes: [Candidate] = (0..<strips).compactMap { s in
+        let columns = s * previous.width / strips ..< (s + 1) * previous.width / strips
+        let found = candidates(rowSignatures(previous, columns: columns), rowSignatures(next, columns: columns),
+                               top: top, bottom: bottom, offsets: 0 ..< body)
+        return found.count == 1 ? found[0] : nil
+    }
+    let tally = Dictionary(grouping: votes, by: \.offset)
+    guard let winner = tally.max(by: { lhs, rhs in
+        lhs.value.count != rhs.value.count
+            ? lhs.value.count < rhs.value.count
+            : abs(lhs.key - expectedOffset) > abs(rhs.key - expectedOffset)
+    }) else { return .noMatch }
+    if winner.key == 0 { return .noMovement }
+    // A band only some strips see is still a band, so take the widest.
+    let lead = winner.value.map(\.lead).max() ?? 0, trail = winner.value.map(\.trail).max() ?? 0
+    return .moved(Overlap(offset: winner.key, fixedTop: top + lead, fixedBottom: bottom + trail))
+}
+
+/// Every offset whose overlap matches well enough, for the rows between the fixed bands.
+func candidates(_ a: [RowSignature], _ b: [RowSignature], top: Int, bottom: Int, offsets: Range<Int>) -> [Candidate] {
+    let height = a.count
     // Sticky bands with see-through backgrounds show different pixels in every frame, so they
     // match neither at the same position nor at the scroll offset. A mismatched run at either edge
     // of the overlap counts as such a band, up to a quarter of the frame.
     let maxChangingBand = height / 4
 
-    var best: (offset: Int, score: Double, lead: Int, trail: Int)?
-    for offset in stride(from: 1, to: body, by: 1) {
+    var found: [Candidate] = []
+    for offset in offsets {
         let rows = top ..< (height - bottom - offset)
         var firstInformative: Int?, lastInformative = 0
         var firstMatch: Int?, lastMatch = 0
@@ -93,15 +136,20 @@ public func findOverlap(previous: GrayFrame, next: GrayFrame, expectedOffset: In
         guard informative >= minInformativeRows else { continue }
         let score = Double(matches) / Double(informative)
         guard score >= minMatchRatio else { continue }
-        if let current = best {
-            let better = score > current.score + 1e-9
-            let tieButCloser = abs(score - current.score) <= 1e-9
-                && abs(offset - expectedOffset) < abs(current.offset - expectedOffset)
-            if better || tieButCloser { best = (offset, score, lead, trail) }
-        } else {
-            best = (offset, score, lead, trail)
-        }
+        found.append(Candidate(offset: offset, score: score, lead: lead, trail: trail))
     }
-    guard let best else { return .noMatch }
-    return .moved(Overlap(offset: best.offset, fixedTop: top + best.lead, fixedBottom: bottom + best.trail))
+    return found
+}
+
+/// The best score wins. Ties go to the offset nearest `expectedOffset`.
+func nearest(_ found: [Candidate], to expectedOffset: Int) -> Candidate? {
+    var best: Candidate?
+    for candidate in found {
+        guard let current = best else { best = candidate; continue }
+        let better = candidate.score > current.score + 1e-9
+        let tieButCloser = abs(candidate.score - current.score) <= 1e-9
+            && abs(candidate.offset - expectedOffset) < abs(current.offset - expectedOffset)
+        if better || tieButCloser { best = candidate }
+    }
+    return best
 }
